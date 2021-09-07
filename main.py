@@ -1,4 +1,4 @@
-from os import close, error
+from os import error
 import tkinter as tk
 from tkinter import messagebox
 from tkinter.constants import END, S
@@ -26,21 +26,22 @@ class Sistema:
         label_user.grid(row=0, column=0, ipadx=5, ipady=5)
 
         # Entry para a entrada do usuario
-        self.entry_user = tk.Entry(self.tela_log)
-        self.entry_user.grid(row=0, column=1, ipadx=5, ipady=5)
+        entry_user = tk.Entry(self.tela_log)
+        entry_user.grid(row=0, column=1, ipadx=5, ipady=5)
 
         # Texto para a senha
         label_password = tk.Label(self.tela_log, text="Senha: ")
         label_password.grid(row=1, column=0, ipadx=5, ipady=5)
 
         # Entry para a entrada da senha
-        self.entry_password = tk.Entry(
+        entry_password = tk.Entry(
             self.tela_log, show="*")
-        self.entry_password.grid(row=1, column=1, ipadx=5, ipady=5)
+        entry_password.grid(row=1, column=1, ipadx=5, ipady=5)
 
         # Botão para registrar
-        button_register = tk.Button(
-            self.tela_log, text="Registrar", command=lambda: self.registrar())
+        button_register = tk.Button(self.tela_log, text="Registrar",
+                                    command=lambda: self.registrar(user=self.pegueString(entry_user),
+                                                                   password=self.pegueString(entry_password)))
         button_register.grid(row=2, column=0, padx=20, pady=5)
 
         # Botão para encerrar o programa
@@ -70,13 +71,12 @@ class Sistema:
         else:
             return True
 
-    def usuarioExiste(self):
+    def usuarioExiste(self, usuario):
         """Verifica se o usuario que foi digitado existe, caso exista retorna true
 
+        usuairo: recebe o nome de usuario
+
         return: True ou False"""
-        usuarios = {
-            "user": self.pegueString(self.entry_user),
-            "password": self.pegueString(self.entry_password)}
 
         if self.arquivoExiste(self.arquivo):
             count = 0
@@ -85,15 +85,15 @@ class Sistema:
                     linha = linha.strip(";")
                     user = linha.split()
 
-                    if user[0] == usuarios["user"]:
+                    if user[0] == usuario:
                         count += 2
                         break
                 dados.close()
 
             if count > 0:
-                return "Existe"
+                return True
             elif count == 0:
-                return "não existe"
+                return False
 
         else:
             open(self.arquivo, "w").close()
@@ -103,26 +103,36 @@ class Sistema:
         Return: None"""
         self.tela_log.destroy()
 
-    def login(self):
+    def login(self, user, password):
         """Compara os usuarios e as senhas para liberar o acesso
         Return: Retorna o resultado. Avisando que ha um erro na senha ou usuario ou confirmando o acesso"""
+        usuarios = {
+            "user": user,
+            "password": password}
 
-    def registrar(self):
+        if self.usuarioExiste(usuarios["user"]) == "não existe":
+            showinfo(title="Usuário não existe",
+                     message="Usuário digitado não existe, porfavo registrar")
+
+        elif self.usuarioExiste(usuarios["user"]) == "Existe":
+            pass
+
+    def registrar(self, user, password):
         """Salva os parametos user e password em um arquivo .txt
 
         Return: None"""
         usuarios = {
-            "user": self.pegueString(self.entry_user),
-            "password": self.pegueString(self.entry_password)}
+            "user": user,
+            "password": password}
 
-        if self.usuarioExiste() == "não existe":
+        if not self.usuarioExiste(usuarios["user"]):
             registrar = open("Dados.txt", "a")
             registrar.write("{} ; {}\n".format(
                 usuarios["user"], usuarios["password"]))
 
-        elif self.usuarioExiste() == "Existe":
-            showinfo(title="Usuario já cadastrado",
-                     message="Usuario já cadastrado porfavor entrar com login")
+        elif self.usuarioExiste(usuarios["user"]):
+            showinfo(title="Usuário já cadastrado",
+                     message="Usuário já cadastrado porfavor entrar com login")
 
 
 if __name__ == "__main__":
